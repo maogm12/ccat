@@ -85,7 +85,12 @@ fn main() {
     }
 }
 
-fn output_line(line: &str, line_number: usize, options: &PrintOptions) {
+fn output_line(line: &str, line_number: usize, options: &PrintOptions) -> bool {
+    if line.is_empty() && options.number_nonblank {
+        println!("");
+        return false;
+    }
+
     if options.number_line {
         print!("{:>6}\t", line_number);
     }
@@ -103,6 +108,7 @@ fn output_line(line: &str, line_number: usize, options: &PrintOptions) {
     }
 
     println!("");
+    return true;
 }
 
 fn cat_lines<T>(lines: std::io::Lines<T>, options: &PrintOptions) where T: std::io::BufRead {
@@ -114,8 +120,9 @@ fn cat_lines<T>(lines: std::io::Lines<T>, options: &PrintOptions) where T: std::
             Ok(line) => {
                 let is_empty = line.trim_right_matches("\n").is_empty();
                 if !options.squeeze_blank || !is_empty || !prev_empty {
-                    output_line(&line, line_number, options);
-                    line_number += 1;
+                    if output_line(&line, line_number, options) {
+                        line_number += 1;
+                    }
                 }
 
                 prev_empty = is_empty;
